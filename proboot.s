@@ -51,7 +51,9 @@ filename_b      !text "PROBOOT.SYSTEM" ;name your start-up file here, file size 
 filename_e
 
 init
--               lda #$ff
+-               txa
+                jsr scrn2p2
+                ora #$c0
                 sta $be30, y
                 lda fakeMLI_e-$100, y
                 sta $be00+fakeMLI_e-fakeMLI, y
@@ -70,7 +72,7 @@ firstent        lda #>dirbuf
                 sta adrhi
                 sta A2H
                 jsr seekread
-                lda #<(dirbuf+4)
+                lda #4
                 sta A2L
 nextent         ldy #0
 
@@ -94,10 +96,8 @@ nextent         ldy #0
                 ;there can be only one page crossed, so we can increment instead of adc
 
                 inc A2H
-+               cmp #<(dirbuf+$1ff) ;4+($27*$0d)
-                lda A2H
-                sbc #>(dirbuf+$1ff)
-                bcc nextent
++               cmp #$ff ;4+($27*$0d)
+                bne nextent
 
                 ;read next directory block when we reach the end of this block
 
@@ -109,7 +109,7 @@ foundname       iny
                 lda (A2L), y
                 dex
                 bne -
-                stx blockind+1
+                stx $ff
 
                 ;cache KEY_POINTER
 
@@ -127,8 +127,8 @@ readfile        jsr seekread
 
                 ;fetch data block and read it
 
-blockind        ldy #$d1
-                inc blockind+1
+blockind        ldy $ff
+                inc $ff
                 ldx dirbuf, y
                 lda dirbuf+256, y
                 tay
